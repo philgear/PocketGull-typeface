@@ -9,67 +9,42 @@ base_font_path = r'c:\Users\philg\Pocketgull\pocketgull-typeface\PocketGull-Bold
 target_dir = r'c:\Users\philg\Pocketgull\pocketgull-typeface'
 sync_dir = r'c:\Users\philg\Pocketgull\pocketgull\public\fonts\google_fonts_submission\ofl\pocketgull'
 
-print("Building PocketGull Superfamily & Clinical OpenType Extensions...")
+print("Ensuring Precision: Setting OpenType Name Tables & Weight Classes...")
 
-# 1. Load Master Bold Font
+def update_name_table(font, family_name, style_name, full_name, ps_name):
+    if 'name' not in font:
+        return
+    name_table = font['name']
+    for record in name_table.names:
+        if record.nameID == 1: # Family Name
+            record.string = family_name
+        elif record.nameID == 2: # SubFamily Name
+            record.string = style_name
+        elif record.nameID == 4: # Full Name
+            record.string = full_name
+        elif record.nameID == 6: # PostScript Name
+            record.string = ps_name
+
+# --- 1. Master Bold Font ---
 font_bold = TTFont(base_font_path)
-glyf_bold = font_bold['glyf']
-hmtx_bold = font_bold['hmtx']
-
-# --- A. Create Contextual Alternate 'l.alt' for double 'l' ---
-if 'l' in glyf_bold:
-    pen = TTGlyphPen(font_bold.getGlyphSet())
-    # Subtle organic stroke tilt variation (+1.5 deg slant difference for l.alt)
-    tpen = TransformPen(pen, (1.0, 0, 0.02, 0.98, 5, 0))
-    glyf_bold['l'].draw(tpen, glyf_bold)
-    glyf_bold['l.alt'] = pen.glyph()
-    hmtx_bold['l.alt'] = hmtx_bold['l']
-    print("  Added 'l.alt' contextual alternate for handwriting natural variations")
-
-# --- B. Add Apothecary & Medical Symbols (Rx, C, F, micro) ---
-def add_custom_symbol(font, char_code, glyph_name, width=600):
-    glyf = font['glyf']
-    hmtx = font['hmtx']
-    cmap = font.getBestCmap()
-    
-    pen = TTGlyphPen(font.getGlyphSet())
-    pen.moveTo((150, 100))
-    pen.lineTo((150, 700))
-    pen.lineTo((450, 700))
-    pen.lineTo((450, 400))
-    pen.lineTo((150, 400))
-    pen.lineTo((450, 100))
-    pen.closePath()
-    glyf[glyph_name] = pen.glyph()
-    hmtx[glyph_name] = (width, 50)
-    cmap[char_code] = glyph_name
-
-add_custom_symbol(font_bold, 0x211E, 'prescription')
-add_custom_symbol(font_bold, 0x2103, 'celsius')
-add_custom_symbol(font_bold, 0x2109, 'fahrenheit')
-add_custom_symbol(font_bold, 0x00B5, 'micro')
-print("  Added Medical Apothecary Symbols (Rx, Celsius, Fahrenheit, Micro)")
+if 'OS/2' in font_bold:
+    font_bold['OS/2'].usWeightClass = 700 # Standard Bold
+update_name_table(font_bold, "PocketGull", "Bold", "PocketGull Bold", "PocketGull-Bold")
 
 font_bold.save(os.path.join(target_dir, 'PocketGull-Bold.ttf'))
 font_bold.save(os.path.join(sync_dir, 'PocketGull-Bold.ttf'))
 
-# --- C. Create PocketGull-Chiseltip.ttf (Ultra-Bold 900) ---
+# --- 2. Chiseltip Font (900 Black) ---
 font_chisel = TTFont(base_font_path)
 if 'OS/2' in font_chisel:
     font_chisel['OS/2'].usWeightClass = 900
-if 'name' in font_chisel:
-    for record in font_chisel['name'].names:
-        if record.nameID in (1, 4, 6):
-            val = record.toUnicode()
-            val = val.replace('Bold', 'Chiseltip')
-            record.string = val
+update_name_table(font_chisel, "PocketGull", "Black", "PocketGull Chiseltip", "PocketGull-Chiseltip")
 
 glyf_chisel = font_chisel['glyf']
 for name in glyf_chisel.keys():
     g = glyf_chisel[name]
     if g.numberOfContours > 0:
         pen = TTGlyphPen(font_chisel.getGlyphSet())
-        # Horizontal stroke weight expansion (+15% scale X)
         tpen = TransformPen(pen, (1.15, 0, -0.05, 1.0, 0, 0))
         try:
             g.draw(tpen, glyf_chisel)
@@ -79,9 +54,8 @@ for name in glyf_chisel.keys():
 
 font_chisel.save(os.path.join(target_dir, 'PocketGull-Chiseltip.ttf'))
 font_chisel.save(os.path.join(sync_dir, 'PocketGull-Chiseltip.ttf'))
-print("  Generated PocketGull-Chiseltip.ttf (Ultra-Bold 900)")
 
-# --- D. Create PocketGull-Fineliner.ttf (Light 400) ---
+# --- 3. Fineliner Font (400 Regular) ---
 font_fine = TTFont(base_font_path)
 if 'OS/2' in font_fine:
     font_fine['OS/2'].usWeightClass = 400
@@ -89,19 +63,13 @@ if 'OS/2' in font_fine:
     font_fine['OS/2'].fsSelection |= (1 << 6)  # Set REGULAR
 if 'head' in font_fine:
     font_fine['head'].macStyle &= ~(1 << 0)   # Clear BOLD
-if 'name' in font_fine:
-    for record in font_fine['name'].names:
-        if record.nameID in (1, 4, 6):
-            val = record.toUnicode()
-            val = val.replace('Bold', 'Fineliner')
-            record.string = val
+update_name_table(font_fine, "PocketGull", "Regular", "PocketGull Fineliner", "PocketGull-Fineliner")
 
 glyf_fine = font_fine['glyf']
 for name in glyf_fine.keys():
     g = glyf_fine[name]
     if g.numberOfContours > 0:
         pen = TTGlyphPen(font_fine.getGlyphSet())
-        # Fine-line stroke weight contraction (0.85 scale X)
         tpen = TransformPen(pen, (0.85, 0, -0.02, 1.0, 0, 0))
         try:
             g.draw(tpen, glyf_fine)
@@ -111,6 +79,5 @@ for name in glyf_fine.keys():
 
 font_fine.save(os.path.join(target_dir, 'PocketGull-Fineliner.ttf'))
 font_fine.save(os.path.join(sync_dir, 'PocketGull-Fineliner.ttf'))
-print("  Generated PocketGull-Fineliner.ttf (Light 400)")
 
-print("\nPocketGull Superfamily & OpenType Extensions built successfully!")
+print("All OpenType name records and weight classes updated with exact precision.")
