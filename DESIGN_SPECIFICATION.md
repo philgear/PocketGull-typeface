@@ -42,6 +42,20 @@ The typeface incorporates specialized clinical symbols sharing the exact felt-ti
 
 ---
 
+## 🛡️ Security & Intellectual Property Compliance Standard
+
+1. **Reserved Font Name Protection (RFN)**:
+   - Registered Reserved Font Name: `PocketGull` under SIL Open Font License 1.1.
+   - Eliminates naming collision risks with third-party open-source or proprietary fonts.
+2. **Clean OpenType Metadata**:
+   - All OpenType `name` table records (ID 0, 7, 8, 11) strictly point to `Copyright 2026 The PocketGull Project Authors`.
+3. **SVG Vector Sanitation**:
+   - Vector asset files contained in `article/` and `scripts/` are strictly sanitized, containing only pure mathematical `<path d="..." />` geometric structures with zero embedded scripts or external references.
+4. **Interactive Specimen Input Sanitation**:
+   - Web specimen interfaces enforce `textContent` binding to prevent Cross-Site Scripting (XSS) injection.
+
+---
+
 ## 📜 License & Open Source Standard
 
 Released under the **SIL Open Font License 1.1 (OFL)**.  
