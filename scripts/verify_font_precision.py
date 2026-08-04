@@ -1,5 +1,8 @@
 import os
-from fontTools.ttLib import TTFont
+try:
+    from fontTools.ttLib import TTFont
+except ImportError:
+    TTFont = None
 
 fonts = ['PocketGull-Bold.ttf', 'PocketGull-Chiseltip.ttf', 'PocketGull-Fineliner.ttf']
 base_dir = r'c:\Users\philg\Pocketgull\pocketgull-typeface'
