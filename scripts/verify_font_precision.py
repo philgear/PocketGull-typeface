@@ -1,6 +1,6 @@
 import os
 try:
-    from fontTools.ttLib import TTFont
+    from fontTools.ttLib import TTFont  # type: ignore
 except ImportError:
     TTFont = None
 
